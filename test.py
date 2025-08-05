@@ -1,5 +1,5 @@
 
-import requests, json
+import requests, json, time
 
 url = "http://localhost:8000/api/v1/hackrx/run"
 headers = {
@@ -24,7 +24,10 @@ data = {
     ]
 }
 
+x = time.time()
 response = requests.post(url, headers = headers, json = data)
+x = time.time() - x
 print("Status Code:", response.status_code)
 
 print("Response:",json.dumps(response.json(), indent=2))
+print(f"Time taken for request: {x:.2f} seconds")
