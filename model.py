@@ -12,7 +12,7 @@ from langchain.retrievers.multi_query import MultiQueryRetriever
 
 
 class AI_model:
-    def __init__(self):
+    def _init_(self):
         self.vector_db = None
         self.retriever = None
         self.current_doc = ""
@@ -24,7 +24,7 @@ class AI_model:
 
         print("LOADED")
 
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size = 7500, chunk_overlap = 100)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size = 3000, chunk_overlap = 300)
         chunks = text_splitter.split_documents(data)
 
         print(f"Split into {len(chunks)} chunks.")
@@ -49,8 +49,10 @@ class AI_model:
         print("llm loaded")
         QUERY_PROMPT = PromptTemplate(
             input_variables=["question"],
-            template="""You are an AI assistant who only answers based on the given context. You are supposed to identify the validity of an insurance policy given these conditions, give answer in no more than 100 characters: 
-            Original question: {question}"""
+            template="""You are an insurance policy analyst answering questions based only on the content of a health insurance policy document provided to you. Answer each question strictly based on the document and do not use prior knowledge or assumptions. Limit each answer to no more than 100 character.
+
+            Question:
+            {question}"""
         )
 
         retriever = MultiQueryRetriever.from_llm(
@@ -61,12 +63,13 @@ class AI_model:
         print("retriever loaded")
         #RAG prompt
         template = """
-        You are an insurance assistant. Based only on the context below, answer the user's question in **exactly one short sentence**:
+        Answer the following question based only on the provided context. Do not use any external knowledge. Answer in no more than 100 characters.
 
         Context:
         {context}
 
-        Question: {question}
+        Question:
+        {question}
         """
 
 
