@@ -1,11 +1,12 @@
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_genai._common import GoogleGenerativeAIError
 from langchain_community.vectorstores import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from google import genai
-import dotenv, os, json
+import dotenv, os, time
 
 dotenv.load_dotenv()
 
@@ -26,26 +27,51 @@ class AI_model:
         chunks = text_splitter.split_documents(data)
 
         print(f"Split into {len(chunks)} chunks.")
-
-        # Add to vector database using Gemini embeddings
-        embedding = GoogleGenerativeAIEmbeddings(model="models/embedding-001", google_api_key=os.getenv("GEMINI_API_KEY"))
-        self.vector_db = Chroma.from_documents(
-            documents=chunks,
-            embedding=embedding,
-            collection_name="local-rag"
-            # persist_directory="./chroma_db"
+        """
+        client = genai.Client(
+            api_key=os.getenv("GEMINI_API_KEY"),
         )
 
-        #self.retriever = self.vector_db.as_retriever()
+        contents = [chunk.page_content for chunk in chunks]
 
+        result = client.models.embed_content(
+                model="gemini-embedding-001",
+                contents=contents[:50])
+        print(result.embeddings)  # This will print the embeddings for the input text
+        exit()"""
+
+        # Add to vector database using Gemini embeddings
+        embedding = GoogleGenerativeAIEmbeddings(
+            model="models/gemini-embedding-001", 
+            google_api_key=os.getenv("GEMINI_API_KEY"),
+            # task_type="retrieval_document" -- handled by default https://github.com/langchain-ai/langchain-google/blob/ce5679bbe270573e1b9d7c627a97309f42999d9f/libs/genai/langchain_google_genai/embeddings.py#L188
+        )
+        i=0
+        while i < len(chunks):
+            print("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW")
+            try:
+                self.vector_db = Chroma.from_documents(
+                    documents=chunks[i:i+50],
+                    embedding=embedding,
+                    collection_name="local-rag"
+                    # persist_directory="./chroma_db"
+                )
+                print(f"Saved {i+50} chunks")
+                i += 50
+            except GoogleGenerativeAIError as e:
+                print(f"Error saving chunks {i+50}: {e}")
+                continue
+            time.sleep(4)
+
+        #self.retriever = self.vector_db.as_retriever()
         return f"uploaded"
 
     def run_model(self, queries):
         # Use Gemini API for LLM
         contexts = []
+        retriever = self.vector_db.as_retriever(search_kwargs={"k": 4})
         for query in queries:
             # Retrieve context from vector DB
-            retriever = self.vector_db.as_retriever(search_kwargs={"k": 4})
             docs = retriever.get_relevant_documents(query)
             contexts.append("\n".join([doc.page_content for doc in docs]))
 
