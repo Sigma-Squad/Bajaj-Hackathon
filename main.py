@@ -39,11 +39,7 @@ async def hackrx_run(request: Request):
     print(upload_response)
 
     # run model for each question
-    answers = []
-    for question in questions:
-        answer = model.run_model(question)
-        print(answer)
-        answers.append(answer)
+    answers = model.run_model(questions)
 
     return JSONResponse(content={"answers": answers})
 
