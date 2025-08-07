@@ -1,7 +1,7 @@
 
 from fastapi import FastAPI, status, Request
 from fastapi.responses import JSONResponse
-import requests, uvicorn
+import requests, uvicorn, os, dotenv
 from random import randint
 from model import AI_model
 from urllib.parse import urlparse
@@ -10,6 +10,7 @@ from pathlib import Path
 BASE_URL = "/api/v1"
 app = FastAPI()
 model = AI_model()
+dotenv.load_dotenv()
 
 @app.get(BASE_URL)
 async def root():
@@ -63,4 +64,4 @@ async def hackrx_run(request: Request):
     return JSONResponse(content={"answers": answers})
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=os.environ.get("DEBUG", "true") == "true") # disable debug in production
