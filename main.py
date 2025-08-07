@@ -2,7 +2,10 @@
 from fastapi import FastAPI, status, Request
 from fastapi.responses import JSONResponse
 import requests, uvicorn
+from random import randint
 from model import AI_model
+from urllib.parse import urlparse
+from pathlib import Path
 
 BASE_URL = "/api/v1"
 app = FastAPI()
@@ -32,10 +35,26 @@ async def hackrx_run(request: Request):
             status_code=status.HTTP_400_BAD_REQUEST,
             content={"detail": "Failed to fetch document"}
         )
+    
+    content_type = response.headers.get('content-type', '')
+        
+    if "application/pdf" in content_type:
+        print("Received PDF document")
+        doc_type = "pdf"
+    elif "application/vnd.openxmlformats-officedocument.wordprocessingml.document" in content_type:
+        print("Received Word document")
+        doc_type = "docx"
+    elif "message/rfc822" in content_type:
+        print("Received Email message")
+        doc_type = "eml"
+    else:
+        parsed = urlparse(document_url)
+        doc_type = Path(parsed.path).suffix.lower().lstrip('.')
 
-    with open("documents/temp_document.pdf", "wb") as f: # if changing file name, update model.upload_docs() to have filename param
+    doc_path = f"documents/document_{randint(0,500)}.{doc_type}"
+    with open(doc_path, "wb") as f: # if changing file name, update model.upload_docs() to have filename param
         f.write(response.content)
-    upload_response = model.upload_docs()
+    upload_response = model.upload_docs(doc_path, doc_type)
     print(upload_response)
 
     # run model for each question

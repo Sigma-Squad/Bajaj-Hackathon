@@ -1,4 +1,3 @@
 **/__pycache__/
 .env
-documents/savedprompt.txt
-documents/combined_prompt.txt
+documents/*

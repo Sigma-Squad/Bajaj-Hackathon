@@ -1,4 +1,5 @@
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader, UnstructuredEmailLoader
+from langchain_docling import DoclingLoader
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -15,9 +16,18 @@ class AI_model:
         self.retriever = None
         self.current_doc = ""
 
-    def upload_docs(self):
-        self.current_doc = "documents/temp_document.pdf"
-        loader = PyPDFLoader(file_path=self.current_doc)
+    def upload_docs(self, doc_path, doc_type):
+        self.current_doc = doc_path
+
+        if doc_type == "pdf":
+            loader = PyPDFLoader(file_path=self.current_doc)
+        elif doc_type == "eml":
+            loader = UnstructuredEmailLoader(file_path=self.current_doc)
+        else:
+            if not doc_type == "docx":
+                print("UNSUPPORTED", doc_type)
+            loader = DoclingLoader(file_path=self.current_doc) # handles multiple formats so give this the fallback
+
         data = loader.load()
 
         print("LOADED")
