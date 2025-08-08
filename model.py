@@ -55,13 +55,18 @@ class AI_model:
         contexts = []
         empty_questions = []
         for idx, query in enumerate(queries):
-            # Retrieve context from vector DB
             if not query.strip():
                 empty_questions.append(idx) # we will insert this later
                 continue
+
+            # Retrieve context from vector DB
             retriever = self.vector_db.as_retriever(search_kwargs={"k": 4})
             docs = retriever.get_relevant_documents(query)
             contexts.append("\n".join([doc.page_content for doc in docs]))
+        
+        # delete empty queries
+        for idx in empty_questions[::-1]: # delete from back to prevent index shifts
+            queries.pop(idx)
 
         # Prepare prompt
         prompts = []
