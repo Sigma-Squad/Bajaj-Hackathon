@@ -13,7 +13,7 @@ data = {
     "questions": [
         "What is the No Claim Discount (NCD) offered in this policy?",
         "Is there a benefit for preventive health check-ups?",
-        "How does the policy define a 'Hospital'?",
+        " ",
         "What is the extent of coverage for AYUSH treatments?",
         "Are there any sub-limits on room rent and ICU charges for Plan A?"
 
@@ -30,7 +30,7 @@ print(f"Time taken for request: {x:.2f} seconds")
 
 
 """
-curl -X POST "http://localhost:8000/api/v1/hackrx/run" \
+curl -X POST "https://bajaj-hackathon-zkze.onrender.com/api/v1/hackrx/run" \
 -H "Content-Type: application/json" \
 -H "Accept: application/json" \
 -H "Authorization: Bearer c6b3c0cec7814bce812bd3ef0758f641d815fee92abbb9a61eb6ec428762de43" \

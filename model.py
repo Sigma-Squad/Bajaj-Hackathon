@@ -53,8 +53,12 @@ class AI_model:
     def run_model(self, queries):
         # Use Gemini API for LLM
         contexts = []
-        for query in queries:
+        empty_questions = []
+        for idx, query in enumerate(queries):
             # Retrieve context from vector DB
+            if not query.strip():
+                empty_questions.append(idx) # we will insert this later
+                continue
             retriever = self.vector_db.as_retriever(search_kwargs={"k": 4})
             docs = retriever.get_relevant_documents(query)
             contexts.append("\n".join([doc.page_content for doc in docs]))
@@ -91,4 +95,10 @@ questions to answer:
             f.write(combined_prompt)
         
         print(response.content)
-        return response.content.split("|||")  # Split the response by the delimiter to get individual answers
+        answers = response.content.strip("|||").split("|||")  # Split the response by the delimiter to get individual answers. sometimes llm returns with delimiter at last so strip it
+
+        # Insert answers into the correct positions
+        for idx in empty_questions:
+            answers.insert(idx, "Blank question")
+
+        return answers
